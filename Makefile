@@ -1,2 +1,2 @@
 all:
-	g++ -std=c++11 -o3 src/*.cc -o bin/TSP
+	g++ -std=c++11 -o3 -DVERBOSE src/*.cc -o bin/TSP

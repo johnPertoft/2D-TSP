@@ -46,7 +46,8 @@ inline void opt2(vector<int>& path) {
       c = path[j],
       d = path[j+1];
       if (ds[a][c] + ds[b][d] < ds[a][b] + ds[c][d]) {
-      reverse(path.begin()+i+1, path.begin()+j+1); // Reverse path between b and c.
+         // Reverse path between b and c.
+        reverse(path.begin()+i+1, path.begin()+j+1);
       }
     }
   }
@@ -84,9 +85,12 @@ int main() {
   double* Xs = new double[n];
   double* Ys = new double[n];
   for (int i = 0; i < n; ++i) cin >> Xs[i] >> Ys[i];
-  for (int i = 0; i < n; ++i)
-  for (int j = i; j < n; ++j)
-  ds[i][j] = ds[j][i] = round(sqrt(pow(Xs[i]-Xs[j], 2) + pow(Ys[i]-Ys[j], 2)));
+  for (int i = 0; i < n; ++i) {
+    for (int j = i; j < n; ++j) {
+      int dist = round(sqrt(pow(Xs[i]-Xs[j], 2) + pow(Ys[i]-Ys[j], 2))); 
+      ds[i][j] = ds[j][i] = dist;
+    }
+  }
 
   // Construct decent path with nearest neighbor.
   vector<int> path (n);
@@ -114,11 +118,22 @@ int main() {
     }
 
     // Abort if out of time.
-    if ((chrono::system_clock::now() - begin).count() > 1800000000) break;
+    if ((chrono::system_clock::now() - begin).count() > 1500000000) break;
   }
+
+  // temp testing stuff
+  // this rotation gives improvement, need to make it more general though
+  rotate(path.begin(), path.begin()+1, path.end());
+  opt2(path);
+  opt2(path);
+  ////////////////
 
   // Print shortest path.
   for (const auto& v : path) cout << v << endl;
+
+  #ifdef VERBOSE
+  cout << "length: " << length(path) << endl; 
+  #endif
 
   return 0;
 }
