@@ -5,8 +5,14 @@
 #include <limits>
 #include <chrono>
 #include <cmath>
+#include <random>
+#include <cstdlib>
 #define MAX 1000
+
 using namespace std;
+
+chrono::time_point<chrono::system_clock> tsp_begin;
+default_random_engine generator;
 int ds[MAX][MAX];
 
 // Calculate tour length for the given path.
@@ -37,8 +43,10 @@ inline void nearest_neighbor_path(int start, vector<int>& path) {
 }
 
 // Optimize path by exchanging pairs of edges with shorter pairs of edges.
-inline void opt2(vector<int>& path) {
+// Returns true if there is time left
+inline bool opt2(vector<int>& path) {
   const auto& n = path.size();
+  // TODO: are these limits correct?
   for (int i = 0; i < n-1; ++i) {
     for (int j = i+1; j < n-1; ++j) {
       const auto& a = path[i],
@@ -49,7 +57,38 @@ inline void opt2(vector<int>& path) {
          // Reverse path between b and c.
         reverse(path.begin()+i+1, path.begin()+j+1);
       }
+
     }
+    
+    if ((chrono::system_clock::now() - tsp_begin).count() > 1800000000) { 
+      return false;
+    }
+  }
+
+  return true;
+}
+
+// sucks
+inline bool opt2_random(vector<int>& path) {
+  const auto n = path.size(); 
+  uniform_int_distribution<int> dist1(0, n-2);
+  while (true) {
+    int i = dist1(generator);
+    uniform_int_distribution<int> dist2(i+1, n-1);
+    int j = dist2(generator);
+
+    const auto& a = path[i],
+    b = path[i+1],
+    c = path[j],
+    d = path[j+1];
+    if (ds[a][c] + ds[b][d] < ds[a][b] + ds[c][d]) {
+       // Reverse path between b and c.
+      reverse(path.begin()+i+1, path.begin()+j+1);
+    }
+
+    if ((chrono::system_clock::now() - tsp_begin).count() > 1500000000) 
+      return false;
+  
   }
 }
 
@@ -67,7 +106,8 @@ inline void opt3(vector<int>& path) {
         f = path[k+1];
         //TODO Try the other way of combining also. ABCDEF -> ADECBF
         if (ds[a][b] + ds[c][d] + ds[e][f] > ds[a][d] + ds[b][e] + ds[c][f]) {
-          reverse(path.begin()+i+1, path.begin()+j+1); // Reverse path between b and c.
+          // Reverse path between b and c.
+          reverse(path.begin()+i+1, path.begin()+j+1); 
           swap(b, d);
           swap(c, f);
         }
@@ -77,9 +117,10 @@ inline void opt3(vector<int>& path) {
 }
 
 int main() {
-  const auto begin = chrono::system_clock::now();
+  tsp_begin = chrono::system_clock::now();
 
-  // Read graph and calculate distances. Note that the distance matrix is symmetrical.
+  // Read graph and calculate distances. 
+  // Note that the distance matrix is symmetrical.
   int n;
   cin >> n;
   double* Xs = new double[n];
@@ -99,6 +140,7 @@ int main() {
   //opt3(path); // TODO Fix.
   auto min = length(path);
 
+  /*
   // Try different start positions as greedy gives different results.
   vector<int> p (n);
   vector<int> starts (n);
@@ -118,19 +160,56 @@ int main() {
     }
 
     // Abort if out of time.
-    if ((chrono::system_clock::now() - begin).count() > 1500000000) break;
+    if ((chrono::system_clock::now() - tsp_begin).count() > 1500000000) break;
   }
+  */
 
   // temp testing stuff
   // this rotation gives improvement, need to make it more general though
+  /*
   rotate(path.begin(), path.begin()+1, path.end());
   opt2(path);
   opt2(path);
+  //*/
   ////////////////
+
+  ///////////////
+  /*
+  rotate(path.begin(), path.begin()+1, path.end());
+  while (true) {
+    bool timeLeft = opt2(path);
+
+    // Abort if out of time.
+    if (!timeLeft) break;
+    //if ((chrono::system_clock::now() - tsp_begin).count() > 1950000000) break;
+  }
+  //*/
+  ///////////////
+
+  ///////////////
+  ///*
+  for (int i = 1; i < n; ++i) {
+    rotate(path.begin(), path.begin()+1, path.end());
+
+    for (int j = 0; j < 10; j++) {
+      opt2(path);
+      if ((chrono::system_clock::now() - tsp_begin).count() > 1000000000) {
+        goto outside;
+      }
+    }
+  }
+  outside:
+  //*/
+  ///////////////
+  
+  ///////////////
+  
+  ///////////////
 
   // Print shortest path.
   for (const auto& v : path) cout << v << endl;
-
+  
+  // Use this pattern to print debug prints without breaking kattis
   #ifdef VERBOSE
   cout << "length: " << length(path) << endl; 
   #endif
