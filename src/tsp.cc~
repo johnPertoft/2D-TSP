@@ -5,13 +5,13 @@
 #include <limits>
 #include <chrono>
 #include <cmath>
-#include <tuple>
-#include <random>
-#include <cstdlib>
 
 #include "clarke_wright.h"
 
-#include "greedy.h"
+#include "ls.h"
+
+#include <random>
+#include <cstdlib>
 
 #define MAX 1000
 
@@ -83,10 +83,10 @@ inline void nearest_neighbor_path(int start, vector<int>& path) {
 }
 
 inline void multi_fragment(vector<int>& path) {
-    const auto n = path.size();
-    int degree[n];
-    fill_n(degree, n, 0);
-    // TODO: later if we have time
+  const auto n = path.size();
+  int degree[n];
+  fill_n(degree, n, 0);
+  // TODO: later if we have time
 }
 
 
@@ -96,27 +96,25 @@ inline void multi_fragment(vector<int>& path) {
 // Returns true if there is time left
 // TODO: return if still improving instead
 inline bool opt2(vector<int>& path) {
-    const auto& n = path.size();
-    // TODO: are these limits correct?
-    for (int i = 0; i < n-1; ++i) {
-        for (int j = i+1; j < n-1; ++j) {
-            const auto& a = path[i],
-                b = path[i+1],
-                c = path[j],
-                d = path[j+1];
-
-            if (ds[a][c] + ds[b][d] < ds[a][b] + ds[c][d]) {
-                // Reverse path between b and c.
-                reverse(path.begin()+i+1, path.begin()+j+1);
-            }
-        }
-
-        if ((chrono::system_clock::now() - tsp_begin).count() > 1600000000) {
-            return false;
-        }
+  const auto& n = path.size();
+  // TODO: are these limits correct?
+  for (int i = 0; i < n-1; ++i) {
+    for (int j = i+1; j < n-1; ++j) {
+      const auto& a = path[i],
+                  b = path[i+1],
+                  c = path[j],
+                  d = path[j+1];
+      
+      if (ds[a][c] + ds[b][d] < ds[a][b] + ds[c][d]) {
+        // Reverse path between b and c.
+        reverse(path.begin()+i+1, path.begin()+j+1);
+      }
     }
 
-    return true;
+    if ((chrono::system_clock::now() - tsp_begin).count() > 1600000000) {
+      return false;
+    }
+  }
 }
 
 // Returns true if the path was made shorter
@@ -134,9 +132,7 @@ inline bool opt22(vector<int>& path) {
       auto changed = ds[a][c] + ds[b][d];
 
       if (changed < current) {
-        // TODO: handle case where we wrap around
-        // normal case
-        reverse(path.begin()+i+1, path.begin()+j+1);
+        
         improved = true;
       }
     }
@@ -170,22 +166,22 @@ inline void opt3(vector<int>& path) {
 }
 
 inline void opt33(vector<int>& path) {
-    const auto n = path.size();
+  const auto n = path.size();
 
-    for (int i = 0; i < n-5; ++i) {
-        for (int j = i+2; j < n-3; ++j) {
-            for (int k = j+2; k < n-1; ++k) {
-                const auto a = path[i],
-                    b = path[i+1],
-                    c = path[j],
-                    d = path[j+1],
-                    e = path[k],
-                    f = path[k+1];
+  for (int i = 0; i < n-5; ++i) {
+    for (int j = i+2; j < n-3; ++j) {
+      for (int k = j+2; k < n-1; ++k) {
+        const auto a = path[i],
+                   b = path[i+1],
+                   c = path[j],
+                   d = path[j+1],
+                   e = path[k],
+                   f = path[k+1];
 
-                //if (ds[a][b] + ds[c][d] + ds[e][f] <
-            }
-        }
+        //if (ds[a][b] + ds[c][d] + ds[e][f] < 
+      }
     }
+  }
 }
 
 int main() {
@@ -207,30 +203,23 @@ int main() {
 
     // Construct decent path with nearest neighbor.
     vector<int> path (n);
-    if (n >= 10) greedy(path, ds);
-    else nearest_neighbor_path(0, path);
-
+    nearest_neighbor_path(0, path);
     opt2(path);
+    //opt3(path); // TODO Fix.
     auto min = length(path);
 
     // some ideas?
     // Try different start positions as greedy gives different results.
     // Rotation gives better results
+    
+    rotate(path.begin(), path.begin()+1, path.end());
+    while (true) {
+      bool timeLeft = opt2(path);
 
-    for (int i = 1; i < n; ++i) {
-        rotate(path.begin(), path.begin()+1, path.end());
-        bool done = false;
-
-        for (int j = 0; j < 10; j++) {
-            opt2(path);
-            if ((chrono::system_clock::now() - tsp_begin).count() > 1600000000) {
-                done = true;
-                break;
-            }
-        }
-
-        if (done) break;
+      // Abort if out of time.
+      if (!timeLeft) break;
     }
+
     // Print shortest path.
     for (const auto& v : path) cout << v << endl;
 
