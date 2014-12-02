@@ -156,26 +156,28 @@ inline bool opt2(vector<int>& path) {
 
 // Returns true if the path was made shorter
 inline bool opt22(vector<int>& path) {
-    bool improved = false;
-    const auto& n = path.size();
-    for (int i = 0; i < n; i++) {
-        for (int j = i+1; j <= n-1; j++) {
-            const auto& a = path[i%n],
-                b = path[(i+1)%n], // use mod n to wrap around
-                c = path[j%n],
-                d = path[(j+1)%n];
+  bool improved = false;
+  const auto& n = path.size();
+  for (int i = 0; i < n; i++) {
+    for (int j = i+1; j <= n-1; j++) {
+      const auto& a = path[i%n],
+                  b = path[(i+1)%n], // use mod n to wrap around
+                  c = path[j%n],
+                  d = path[(j+1)%n];
 
-            auto current = ds[a][b] + ds[c][d];
-            auto changed = ds[a][c] + ds[b][d];
+      auto current = ds[a][b] + ds[c][d];
+      auto changed = ds[a][c] + ds[b][d];
 
-            if (changed < current) {
-
-                improved = true;
-            }
-        }
+      if (changed < current) {
+        // TODO: handle case where we wrap around
+        // normal case
+        reverse(path.begin()+i+1, path.begin()+j+1);
+        improved = true;
+      }
     }
+  }
 
-    return improved;
+  return improved;
 }
 
 // Optimize path by exchanging edge triplets with shorter edge triplets.
@@ -245,7 +247,6 @@ int main() {
 
     opt2(path); // Opt 2 until time limit or no improvement
 
-    // Print shortest path.
     for (const auto v : path) cout << v << endl;
 
     // Use this pattern to print debug prints without breaking kattis
