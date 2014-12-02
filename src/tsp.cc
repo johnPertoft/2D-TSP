@@ -8,12 +8,17 @@
 #include <tuple>
 #include <random>
 #include <cstdlib>
+#include <cmath>
 
 #include "clarke_wright.h"
 
 #include "greedy.h"
 
 #define MAX 1000
+
+#define TIME_LIMIT 1600000000 // PROD
+
+//#define TIME_LIMIT 1600000 // MAC
 
 #define MAX_NN 40
 
@@ -92,26 +97,56 @@ inline void multi_fragment(vector<int>& path) {
 
 //////// Local optimization algorithms ///////////
 
-// Optimize path by exchanging pairs of edges with shorter pairs of edges.
-// Returns true if there is time left
-// TODO: return if still improving instead
 inline bool opt2(vector<int>& path) {
-    const auto& n = path.size();
-    // TODO: are these limits correct?
-    for (int i = 0; i < n-1; ++i) {
-        for (int j = i+1; j < n-1; ++j) {
-            const auto& a = path[i],
-                b = path[i+1],
-                c = path[j],
-                d = path[j+1];
+    const int n = path.size();
+    bool improved = true;
+    while (improved) {
+        improved = false;
 
-            if (ds[a][c] + ds[b][d] < ds[a][b] + ds[c][d]) {
-                // Reverse path between b and c.
-                reverse(path.begin()+i+1, path.begin()+j+1);
+        for (int i = 0; i < n; ++i) {
+            int j = (i + 1) % n;
+
+            while (i != j) {
+                const int a = path[i];
+                const int b = path[(i + 1) % n];
+                const int c = path[j];
+                const int d = path[(j + 1) % n];
+
+                if (ds[a][c] + ds[b][d] < ds[a][b] + ds[c][d]) {
+                    improved = true;
+
+                    int diff = -1;
+                    if (i + 1 < j) diff = j - (i + 1);
+                    else {
+                        diff = n - (i + 1) + j + 1;
+                    }
+
+                    diff /= 2;
+
+                    int start = i + 1;
+                    int end = j;
+                    int tmp = -1;
+
+                    while (diff > 0) {
+                        start %= n;
+                        end = end == -1 ? n - 1 : end;
+
+                        tmp = path[start];
+                        path[start] = path[end];
+                        path[end] = tmp;
+
+                        ++start;
+                        --end;
+                        --diff;
+                    }
+                }
+
+                ++j;
+                j %= n;
             }
         }
 
-        if ((chrono::system_clock::now() - tsp_begin).count() > 1600000000) {
+        if ((chrono::system_clock::now() - tsp_begin).count() > TIME_LIMIT) {
             return false;
         }
     }
@@ -208,32 +243,7 @@ int main() {
     if (n >= 10) greedy(path, ds);
     else nearest_neighbor_path(0, path);
 
-    opt2(path);
-    auto min = length(path);
-
-    // some ideas?
-    // Try different start positions as greedy gives different results.
-    // Rotation gives better results
-
-    bool done = false;
-    while (true) {
-        rotate(path.begin(), path.begin()+1, path.end());
-
-        int j = 0;
-
-        while (j < 20) {
-            ++j;
-
-            opt2(path);
-
-            if ((chrono::system_clock::now() - tsp_begin).count() > 1600000) { // Change
-                done = true;
-                break;
-            }
-        }
-
-        if (done) break;
-    }
+    opt2(path); // Opt 2 until time limit or no improvement
 
     // Print shortest path.
     for (const auto v : path) cout << v << endl;
