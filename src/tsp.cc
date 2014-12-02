@@ -23,6 +23,9 @@ inline int length(vector<int> path) {
   return l;
 }
 
+
+//////// Path construction algorithms ///////////
+
 // Find decent path with nearest neighbor.
 inline void nearest_neighbor_path(int start, vector<int>& path) {
   const auto& n = path.size();
@@ -42,12 +45,23 @@ inline void nearest_neighbor_path(int start, vector<int>& path) {
   }
 }
 
+inline void multi_fragment(vector<int>& path) {
+  const auto n = path.size();
+  int degree[n];
+  fill_n(degree, n, 0);
+  // TODO: later if we have time
+}
+
+
+//////// Local optimization algorithms ///////////
+
 // Optimize path by exchanging pairs of edges with shorter pairs of edges.
 // Returns true if there is time left
+// TODO: return if still improving instead
 inline bool opt2(vector<int>& path) {
   const auto& n = path.size();
   // TODO: are these limits correct?
-  for (int i = 0; i < n-1; ++i) {
+  for (int i = 0; i < n-2; ++i) {
     for (int j = i+1; j < n-1; ++j) {
       const auto& a = path[i],
       b = path[i+1],
@@ -68,28 +82,28 @@ inline bool opt2(vector<int>& path) {
   return true;
 }
 
-// sucks
-inline bool opt2_random(vector<int>& path) {
-  const auto n = path.size(); 
-  uniform_int_distribution<int> dist1(0, n-2);
-  while (true) {
-    int i = dist1(generator);
-    uniform_int_distribution<int> dist2(i+1, n-1);
-    int j = dist2(generator);
+// Returns true if the path was made shorter
+inline bool opt22(vector<int>& path) {
+  bool improved = false;
+  const auto& n = path.size();
+  for (int i = 0; i < n; i++) {
+    for (int j = i+1; j <= n-1; j++) {
+      const auto& a = path[i%n],
+                  b = path[(i+1)%n], // use mod n to wrap around
+                  c = path[j%n],
+                  d = path[(j+1)%n];
 
-    const auto& a = path[i],
-    b = path[i+1],
-    c = path[j],
-    d = path[j+1];
-    if (ds[a][c] + ds[b][d] < ds[a][b] + ds[c][d]) {
-       // Reverse path between b and c.
-      reverse(path.begin()+i+1, path.begin()+j+1);
+      auto current = ds[a][b] + ds[c][d];
+      auto changed = ds[a][c] + ds[b][d];
+
+      if (changed < current) {
+        
+        improved = true;
+      }
     }
-
-    if ((chrono::system_clock::now() - tsp_begin).count() > 1500000000) 
-      return false;
-  
   }
+
+  return improved;
 }
 
 // Optimize path by exchanging edge triplets with shorter edge triplets.
@@ -111,6 +125,25 @@ inline void opt3(vector<int>& path) {
           swap(b, d);
           swap(c, f);
         }
+      }
+    }
+  }
+}
+
+inline void opt33(vector<int>& path) {
+  const auto n = path.size();
+
+  for (int i = 0; i < n-5; ++i) {
+    for (int j = i+2; j < n-3; ++j) {
+      for (int k = j+2; k < n-1; ++k) {
+        const auto a = path[i],
+                   b = path[i+1],
+                   c = path[j],
+                   d = path[j+1],
+                   e = path[k],
+                   f = path[k+1];
+
+        //if (ds[a][b] + ds[c][d] + ds[e][f] < 
       }
     }
   }
@@ -193,17 +226,13 @@ int main() {
 
     for (int j = 0; j < 10; j++) {
       opt2(path);
-      if ((chrono::system_clock::now() - tsp_begin).count() > 1000000000) {
+      if ((chrono::system_clock::now() - tsp_begin).count() > 1800000000) {
         goto outside;
       }
     }
   }
   outside:
   //*/
-  ///////////////
-  
-  ///////////////
-  
   ///////////////
 
   // Print shortest path.
