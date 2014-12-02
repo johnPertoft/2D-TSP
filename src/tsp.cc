@@ -215,13 +215,18 @@ int main() {
     // Try different start positions as greedy gives different results.
     // Rotation gives better results
 
-    for (int i = 1; i < n; ++i) {
+    bool done = false;
+    while (true) {
         rotate(path.begin(), path.begin()+1, path.end());
-        bool done = false;
 
-        for (int j = 0; j < 10; j++) {
+        int j = 0;
+
+        while (j < 20) {
+            ++j;
+
             opt2(path);
-            if ((chrono::system_clock::now() - tsp_begin).count() > 1600000000) {
+
+            if ((chrono::system_clock::now() - tsp_begin).count() > 1600000) { // Change
                 done = true;
                 break;
             }
@@ -229,8 +234,9 @@ int main() {
 
         if (done) break;
     }
+
     // Print shortest path.
-    for (const auto& v : path) cout << v << endl;
+    for (const auto v : path) cout << v << endl;
 
     // Use this pattern to print debug prints without breaking kattis
 #ifdef VERBOSE
