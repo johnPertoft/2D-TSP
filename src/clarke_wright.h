@@ -4,7 +4,7 @@
 #include <tuple>
 #include <iostream>
 
-#define MAX 1000
+#define MX 1000
 
 using namespace std;
 
@@ -16,7 +16,7 @@ struct savings_sort { // Sorts in decending order
 
 };
 
-inline void clarke_wright(vector<int>& res, const int ds[][MAX], int n) {
+inline void clarke_wright(vector<int>& res, const int ds[][MX], int n) {
     srand(time(0));
 
     int hub = rand() % n;

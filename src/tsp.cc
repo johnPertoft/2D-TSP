@@ -5,13 +5,13 @@
 #include <limits>
 #include <chrono>
 #include <cmath>
+#include <tuple>
+#include <random>
+#include <cstdlib>
 
 #include "clarke_wright.h"
 
-#include "ls.h"
-
-#include <random>
-#include <cstdlib>
+#include "greedy.h"
 
 #define MAX 1000
 
@@ -148,7 +148,8 @@ int main() {
     // Construct decent path with nearest neighbor.
     vector<int> path (n);
     if (n >= 10) {
-        clarke_wright(path, ds, n);
+        //clarke_wright(path, ds, n);
+        greedy(path, ds);
     } else {
         // TOTALSOKA
         nearest_neighbor_path(0, path);
@@ -247,8 +248,8 @@ int main() {
         rotate(path.begin(), path.begin()+1, path.end());
         bool done = false;
         for (int j = 0; j < 10; j++) {
-            //opt2(path);
-            two_opt(path, ds, nns);
+            opt2(path);
+            //two_opt(path, ds, nns);
             if ((chrono::system_clock::now() - tsp_begin).count() > 1600000000) {
                 done = true;
                 break;
