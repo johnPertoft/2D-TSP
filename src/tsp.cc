@@ -169,23 +169,40 @@ inline void opt3(vector<int>& path) {
     }
 }
 
+// TODO: there are two(?) possible new tours 
 inline void opt33(vector<int>& path) {
-    const auto n = path.size();
+  const auto n = path.size();
+  
+  // TODO: wrap around here too?
 
-    for (int i = 0; i < n-5; ++i) {
-        for (int j = i+2; j < n-3; ++j) {
-            for (int k = j+2; k < n-1; ++k) {
-                const auto a = path[i],
-                    b = path[i+1],
-                    c = path[j],
-                    d = path[j+1],
-                    e = path[k],
-                    f = path[k+1];
+  // TODO: might want to change the limits?
+  // can it be three consecutive edges?
+  for (int i = 0; i <= n - 6; ++i) {
+    for (int j = i + 2; j <= n - 4; ++j) {
+      for (int k = j + 2; k <= n - 2; ++k) {
+        const auto a = path[i],
+                   b = path[i+1],
+                   c = path[j],
+                   d = path[j+1],
+                   e = path[k],
+                   f = path[k+1];
+        
+        // TODO: there are four different ways to rebuild it
+        // temp: do only one for now
+        // temp: any better way than creating copies?
 
-                //if (ds[a][b] + ds[c][d] + ds[e][f] <
-            }
-        }
+        // note: adding one to end iterator because it is not inclusive
+        vector<int> P1(path.begin()+i+1, path.begin()+j+1);
+        vector<int> P2(path.begin()+j+1, path.begin()+k+1);
+        vector<int> P3(path.begin()+k+1, path.end());
+
+        vector<int> merge;
+        merge.reserve(n);
+        //merge.insert
+        // not done yet
+      }
     }
+  }
 }
 
 int main() {
