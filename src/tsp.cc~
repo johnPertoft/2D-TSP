@@ -212,21 +212,14 @@ int main() {
     // Try different start positions as greedy gives different results.
     // Rotation gives better results
     
-    for (int i = 1; i < n; ++i) {
     rotate(path.begin(), path.begin()+1, path.end());
-    bool done = false;
-    
-    for (int j = 0; j < 10; j++) {
-      opt2(path);
-      if ((chrono::system_clock::now() - tsp_begin).count() > 1800000000) {
-        done = true;
-        break;
-      }
+    while (true) {
+      bool timeLeft = opt2(path);
+
+      // Abort if out of time.
+      if (!timeLeft) break;
     }
 
-    if (done) break;
-  }
-  outside:
     // Print shortest path.
     for (const auto& v : path) cout << v << endl;
 
