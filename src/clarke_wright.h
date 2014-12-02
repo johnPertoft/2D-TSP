@@ -20,12 +20,13 @@ inline void clarke_wright(vector<int>& res, const int ds[][MAX], int n) {
     srand(time(0));
 
     int hub = rand() % n;
-    vector<tuple<int, int, int>> savings(n * (n - 1) /2 + 1);
+    int ss = ((n - 1) * (n - 2) + 200) / 2;
+    vector<tuple<int, int, int>> savings(ss);
     int idx = 0;
 
     for (int i = 0; i < n; ++i) {
         if (i != hub) {
-            for (int j = 0; j < n; ++j) {
+            for (int j = i + 1; j < n; ++j) {
                 if (j != hub && j != i) {
                     auto save = make_tuple(i, j, ds[i][hub] + ds[hub][j] - ds[i][j]);
                     savings[idx] = save;
@@ -37,6 +38,7 @@ inline void clarke_wright(vector<int>& res, const int ds[][MAX], int n) {
 
     sort(savings.begin(), savings.end(), savings_sort());
 
+    int savingsSize = idx;
     idx = 0;
 
     int degrees[n];
@@ -55,7 +57,7 @@ inline void clarke_wright(vector<int>& res, const int ds[][MAX], int n) {
         int start = get<0>(tup);
         int end = get<1>(tup);
         ++idx;
-        idx %= savings.size();
+        idx %= savingsSize;
 
         if ((degrees[start] == 0 && degrees[end] == 1) ||
             (degrees[end] == 0 && degrees[start] == 1) || (!takenFirst)) {
@@ -93,21 +95,36 @@ inline void clarke_wright(vector<int>& res, const int ds[][MAX], int n) {
     res[1] = hub;
     res[2] = leftSecond;
 
-    bool used[n];
-    fill_n(used, n, false);
+    bool usedEdges[optEdgesIdx];
+    fill_n(usedEdges, optEdgesIdx, false);
+    bool usedVertices[n];
+    fill_n(usedVertices, n, false);
+    usedVertices[leftFirst] = usedVertices[leftSecond] = usedVertices[hub] = true;
 
     for (int i = 2; i < n - 1; ++i) { // could be made faster
         int current = res[i];
         for (int j = 0; j < optEdgesIdx; ++j) {
-            if (!used[j]) {
+            if (!usedEdges[j]) {
                 int opt1 = optimalEdges1[j];
                 int opt2 = optimalEdges2[j];
                 if (opt1 == current || opt2 == current) {
-                    res[i + 1] = opt1 == current ? opt2 : opt1;
-                    used[j] = true;
-                    break;
+                    int next = opt1 == current ? opt2 : opt1;
+                    if (!usedVertices[next]) {
+                        res[i + 1] = next;
+                        usedEdges[j] = true;
+                        usedVertices[next] = true;
+                        break;
+                    }
                 }
             }
         }
     }
+
+    bool used[n];
+    fill_n(used, n, false);
+    for (int i = 0; i < n; ++i) used[res[i]] = true;
+
+    for (int i = 0; i < n; ++i) if (!used[i]) throw "not using all edges";
+
+    for (int i = 0; i < n; ++i) if (!usedVertices[i]) throw "not using all edges.";
 }
