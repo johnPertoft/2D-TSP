@@ -16,11 +16,11 @@
 
 #define MAX 1000
 
-//#define TIME_LIMIT 1600000000 // PROD
+#define TIME_LIMIT 1750000000 // PROD
 
-#define TIME_LIMIT 1600000 // MAC
+//#define TIME_LIMIT 1600000 // MAC
 
-#define MAX_NN 80
+#define MAX_NN 25
 
 bool dlb[MAX];
 
@@ -146,7 +146,7 @@ inline bool opt2_greedy(
         improved = false;
 
         for (int i = 0; i < n - 1; ++i) {
-            if (dlb[path[i]]) continue;
+            //if (dlb[path[i]]) continue;
 
             bool good_i = false;
 
@@ -181,83 +181,6 @@ inline bool opt2_greedy(
     return true;
 }
 
-inline void rev_opt3(vector<int>& route, int s, int t) {
-    int length = route.size();
-    for (int i = (t - s) / 2; i >= 0; i--) {
-        int tmp = route[(s + i) % length];
-        route[(s + i) % length] = route[(t - i) % length];
-        route[(t - i) % length] = tmp;
-    }
-}
-
-
-bool opt3(vector<int>& p) {
-    int n = p.size();
-
-    for (int i = 1; i < n - 1; ++i) {
-        int s1 = p[i - 1];
-        int t1 = p[i];
-
-        int d1 = ds[s1][t1];
-
-        for (int j = i + 1; j < n; ++j) {
-            int s2 = p[j - 1];
-            int t2 = p[j];
-
-            int d2 = ds[s2][t2];
-
-            for (int k = j + 1; k <= n; ++k) {
-                if ((k + 2) % n == j || (j + 2) % n == i || i + 2 == k)
-                    continue;
-
-                int s3 = p[k - 1];
-                int t3 = p[k % n];
-
-                int before = d1 + d2 + ds[s3][t3];
-                int after = ds[s1][t2] + ds[s3][t1] + ds[s2][t3];
-
-                if (before > after) {
-                    rev_opt3(p, i, j - 1);
-                    rev_opt3(p, j, k - 1);
-                    rev_opt3(p, i, k - 1);
-                    return true;
-                }
-
-                after = ds[s1][t2] + ds[s3][s2] + ds[t1][t3];
-
-                if (before > after) {
-                    rev_opt3(p, j, k - 1);
-                    rev_opt3(p, i, k - 1);
-                    return true;
-                }
-
-                after = ds[s1][s3] + ds[t1][t2] + ds[s2][t3];
-
-                if (before > after) {
-                    rev_opt3(p, i, j - 1);
-                    rev_opt3(p, i, k - 1);
-                    return true;
-                }
-
-                after = ds[s1][s2] + ds[t1][s3] + ds[t2][t3];
-
-                if (before > after) {
-                    rev_opt3(p, i, j - 1);
-                    rev_opt3(p, j, k - 1);
-                    return true;
-                }
-
-            }
-
-            if ((chrono::system_clock::now() - tsp_begin).count() > TIME_LIMIT) {
-                return false;
-            }
-        }
-    }
-
-    return false;
-}
-
 // Perform a random double bridge move.
 inline void perturb(vector<int>& p, vector<int>& indices) {
     const auto n = p.size();
@@ -267,21 +190,19 @@ inline void perturb(vector<int>& p, vector<int>& indices) {
     static uniform_int_distribution<int> d(2, n - 3);
     static auto r = bind(d, ref(rd));
 
-    auto pos = r();
+    for (int i = 0; i < n / 10; ++i) {
+        auto pos = r();
 
-    int s1 = pos - 1;
-    int s2 = pos + 1;
+        int s1 = pos - 1;
+        int s2 = pos + 1;
 
-    int tmp = p[s1];
-    p[s1] = p[s2];
-    p[s2] = tmp;
+        int tmp = p[s1];
+        p[s1] = p[s2];
+        p[s2] = tmp;
 
-    indices[p[s2]] = s2;
-    indices[p[s1]] = s1;
-
-
-    dlb[s1 - 1] = false;
-    dlb[s2 + 1] = false;
+        indices[p[s2]] = s2;
+        indices[p[s1]] = s1;
+    }
 }
 
 int main() {
@@ -332,7 +253,7 @@ int main() {
 
         int l = length(path);
 
-        cout << l << endl;
+        //cout << l << endl;
 
         if (l < best) {
             bestPath = path;
@@ -344,7 +265,7 @@ int main() {
         }
     }
 
-    //for (const auto v : bestPath) cout << v << endl;
+    for (const auto v : bestPath) cout << v << endl;
 
     // Use this pattern to print debug prints without breaking kattis
 #ifdef VERBOSE
