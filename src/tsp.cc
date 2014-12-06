@@ -9,6 +9,7 @@
 #include <random>
 #include <cstdlib>
 #include <cmath>
+#include <ctime>
 
 #include "clarke_wright.h"
 
@@ -174,7 +175,9 @@ inline bool opt2_greedy(
     return true;
 }
 
+
 // Perform a random double bridge move.
+/*
 inline void perturb(vector<int>& p, vector<int>& indices) {
     const auto n = p.size();
     if (n < 8) return;
@@ -196,6 +199,34 @@ inline void perturb(vector<int>& p, vector<int>& indices) {
         indices[p[s2]] = s2;
         indices[p[s1]] = s1;
     }
+}
+*/
+
+static uint64_t x = time(0)*1000;
+
+int xor_rand(int m) {
+  x ^= x << 11;
+  x ^= x >> 35;
+  x ^= x << 4;
+  x *= 2685821657736338717LL;
+  int out = x % m;
+  return (out < 0) ? -out : out;
+}
+
+inline void perturb(vector<int>& p, vector<int>& indices) {
+  const auto& n = p.size();
+  int num_shuffles = n * 0.15;
+  for (int x = 0; x < num_shuffles; x++) {
+    int index = xor_rand(n);
+    if (index == n - 1) {
+      swap(p[index], p[0]);
+      swap(indices[p[index]], indices[p[0]]);
+    
+    } else {
+      swap(p[index], p[index+1]);
+      swap(indices[p[index]], indices[p[index+1]]);
+    }
+  }
 }
 
 int main() {
