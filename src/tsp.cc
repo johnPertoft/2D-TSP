@@ -109,10 +109,8 @@ inline void rev(vector<int>& path, vector<int>& indices, int s, int e) {
         start %= n;
         end = end == -1 ? n - 1 : end;
 
-        tmp = path[start];
-        path[start] = path[end];
-        path[end] = tmp;
-
+        swap(path[start], path[end]);
+  
         //indices[path[start]] = start;
         //indices[path[end]] = end;
 
@@ -120,7 +118,7 @@ inline void rev(vector<int>& path, vector<int>& indices, int s, int e) {
         --end;
         --diff;
     }
-
+    
     for (int i = 0; i < n; ++i) {
         indices[path[i]] = i;
     }
@@ -140,10 +138,6 @@ inline bool opt2_greedy(
         improved = false;
 
         for (int i = 0; i < n - 1; ++i) {
-            //if (dlb[path[i]]) continue;
-
-            bool good_i = false;
-
             for (int k = 0; k < max_nn - 1; ++k) { // nns => vertices
                 const int a = path[i];
                 const int b = path[i + 1];
@@ -157,14 +151,11 @@ inline bool opt2_greedy(
                 if (b == c || b == d) continue;
 
                 if (ds[a][c] + ds[b][d] < ds[a][b] + ds[c][d]) {
-                    good_i = true;
                     improved = true;
 
                     rev(path, indices, i + 1, j);
                 }
             }
-
-            if (!good_i) dlb[path[i]] = true;
         }
 
         if ((chrono::system_clock::now() - tsp_begin).count() > TIME_LIMIT) {
